@@ -1,9 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
+	"time"
 )
+
+type GameResult struct {
+	Date     string `json:"date"`
+	Outcome  string `json:"outcome"` // исход игры
+	Attempts int    `json:"attempts"`
+}
 
 const (
 	Reset  = "\033[0m"
@@ -18,7 +27,7 @@ func main() {
 		fmt.Println("Игра 'Угадай число' - выберите режим сложности: 1- легкий, 2-средний, 3-сложный")
 
 		var history []int // тут слайс введенных ранее чисел пользователем
-		var attempts int = 10
+		var attempts int
 		var guess int // число, которое ввел пользователь
 		var diff int  // разница между тем, что ввел пользователь, и загаданным числом
 		var maxNumberInt int
@@ -45,6 +54,12 @@ func main() {
 			// Проверяем результат
 			if guess == secret {
 				fmt.Println(Green + "Поздравляю, ты угадал число" + Reset)
+				result := GameResult{
+					Date:     time.Now().Format("2006-01-02 15:04:05"),
+					Outcome:  "Победа",
+					Attempts: attempts,
+				}
+				saveResult(result)
 				break
 			} else {
 				//подсказки
@@ -64,6 +79,12 @@ func main() {
 				// 3. Проверяем, не закончились ли попытки
 				if attempts == 0 {
 					fmt.Println(Red+"Проигрыш\n", secret, "— это было загаданное число"+Reset)
+					result := GameResult{
+						Date:     time.Now().Format("2006-01-02 15:04:05"),
+						Outcome:  "Проигрыш",
+						Attempts: attempts,
+					}
+					saveResult(result)
 					break
 				}
 			}
@@ -119,4 +140,14 @@ func checkchoice() int {
 		}
 		return choice
 	}
+}
+func saveResult(newResult GameResult) {
+	var history []GameResult
+	fileData, err := os.ReadFile("results.json")
+	if err == nil {
+		json.Unmarshal(fileData, &history)
+	}
+	history = append(history, newResult)
+	jsonData, _ := json.MarshalIndent(history, "", "    ")
+	os.WriteFile("results.json", jsonData, 0644)
 }
