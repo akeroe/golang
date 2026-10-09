@@ -34,7 +34,7 @@ func main() {
 		choice := checkchoice() // выбор сложности пользователя
 
 		maxNumberInt, attempts = choiceLevelOfDifficult(choice)
-		secret := randomInt(maxNumberInt, choice)
+		secret := randomInt(maxNumberInt)
 
 		for {
 			_, err := fmt.Scan(&guess)
@@ -62,14 +62,7 @@ func main() {
 				saveResult(result)
 				break
 			} else {
-				//подсказки
-				if diff <= 5 {
-					fmt.Println("🔥 Горячо")
-				} else if diff <= 15 {
-					fmt.Println("🙂 Тепло")
-				} else {
-					fmt.Println("❄️ Холодно")
-				}
+				tips(diff, secret, guess)
 
 				// 2. общ код выполняется для ЛЮБОГО неверного ответа
 				attempts--
@@ -100,8 +93,8 @@ func main() {
 	}
 }
 
-func randomInt(maxNumberInt, choice int) int { //генерирует рандом число
-	return rand.Intn(maxNumberInt)
+func randomInt(maxNumberInt int) int { //генерирует рандом число
+	return rand.Intn(maxNumberInt) + 1
 }
 func choiceLevelOfDifficult(choice int) (maxNumberInt int, attempts int) {
 
@@ -150,4 +143,19 @@ func saveResult(newResult GameResult) {
 	history = append(history, newResult)
 	jsonData, _ := json.MarshalIndent(history, "", "    ")
 	os.WriteFile("results.json", jsonData, 0644)
+}
+func tips(diff, secret, guess int) {
+	//подсказки
+	if diff <= 5 {
+		fmt.Println("🔥 Горячо")
+	} else if diff <= 15 {
+		fmt.Println("🙂 Тепло")
+	} else {
+		fmt.Println("❄️ Холодно")
+	}
+	if secret > guess {
+		fmt.Println("Секретное число больше.")
+	} else {
+		fmt.Println("Секретное число меньше.")
+	}
 }
