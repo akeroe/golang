@@ -34,35 +34,20 @@ func main() {
 		choice := checkchoice() // выбор сложности пользователя
 
 		maxNumberInt, attempts = choiceLevelOfDifficult(choice)
+		_, maxAttempts := choiceLevelOfDifficult(choice)
 		secret := randomInt(maxNumberInt)
-
 		for {
-			_, err := fmt.Scan(&guess)
-			if err != nil {
-				fmt.Println("Ошибка: некорректное число")
-				fmt.Scanln() // чистит буфер от букв
-				continue     // бросает выполнение круга и возвращается наверх
-			}
+			guess = input()
 
-			// Считаем разницу
-			if guess > secret {
-				diff = guess - secret
-			} else {
-				diff = secret - guess
-			}
+			diff = calculateDiff(guess, secret)
 
 			// Проверяем результат
-			if guess == secret {
-				fmt.Println(Green + "Поздравляю, ты угадал число" + Reset)
-				result := GameResult{
-					Date:     time.Now().Format("2006-01-02 15:04:05"),
-					Outcome:  "Победа",
-					Attempts: attempts,
-				}
-				saveResult(result)
+			if checkGuess(guess, secret, attempts, maxAttempts) == true {
 				break
 			} else {
 				tips(diff, secret, guess)
+				currentAttempt := (maxAttempts - attempts) + 1                                   // Считаем номер текущей попытки
+				fmt.Printf(Yellow+"Попытка номер %d из %d\n"+Reset, currentAttempt, maxAttempts) // Выводим номер попытки жёлтым цветом
 
 				// 2. общ код выполняется для ЛЮБОГО неверного ответа
 				attempts--
@@ -75,7 +60,7 @@ func main() {
 					result := GameResult{
 						Date:     time.Now().Format("2006-01-02 15:04:05"),
 						Outcome:  "Проигрыш",
-						Attempts: attempts,
+						Attempts: maxAttempts,
 					}
 					saveResult(result)
 					break
@@ -90,6 +75,7 @@ func main() {
 			fmt.Println("Спасибо за игру. Пока!")
 			break
 		}
+
 	}
 }
 
@@ -158,4 +144,43 @@ func tips(diff, secret, guess int) {
 	} else {
 		fmt.Println("Секретное число меньше.")
 	}
+}
+
+func input() int {
+	for {
+		var guess int
+		_, err := fmt.Scan(&guess)
+		if err != nil {
+			fmt.Println("Ошибка: некорректное число")
+			fmt.Scanln() // чистит буфер от букв
+			continue     // бросает выполнение круга и возвращается наверх
+
+		} else {
+			return guess
+		}
+
+	}
+}
+func calculateDiff(guess int, secret int) int {
+	if guess > secret {
+		return guess - secret
+	} else {
+		return secret - guess
+	}
+}
+func checkGuess(guess, secret, attempts, maxAttempts int) bool {
+	// Проверяем результат
+	if guess == secret {
+		fmt.Println(Green + "Поздравляю, ты угадал число" + Reset)
+		result := GameResult{
+			Date:     time.Now().Format("2006-01-02 15:04:05"),
+			Outcome:  "Победа",
+			Attempts: (maxAttempts - attempts) + 1, // тут считаем реально сделанные попытки
+		}
+		saveResult(result)
+		return true
+	}
+
+	return false
+
 }
